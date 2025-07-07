@@ -4,12 +4,13 @@ import useUserStore from "../store/userStore";
 import usePostStore from "../store/postStore";
 import { FcLike } from "react-icons/fc";
 import { Toaster } from "react-hot-toast";
+import useLikeStore from "../store/likeStore";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
+  const navigate = useNavigate();
   const user = useUserStore((state) => state.user);
   const posts = usePostStore((state) => state.posts);
-  const random = usePostStore((state) => state.randoms);
-  const hero = useUserStore((state) => state.hero);
   const trandings = usePostStore((state) => state.tranding);
   const categories = [
     "All",
@@ -44,7 +45,10 @@ function Profile() {
               <p className="text-4xl font-semibold mb-10">For you</p>
               {posts &&
                 posts.map((post, index) => (
-                  <div key={index} className="flex flex-row h-48 mb-14">
+                  <div 
+                  key={index} 
+                  onClick={() => navigate(`/blog/${post._id}`)}
+                  className="flex flex-row h-48 mb-14 cursor-pointer">
                     <section className="w-2/3">
                       <div className="flex flex-row items-start gap-3 mb-3">
                         <img
@@ -69,7 +73,11 @@ function Profile() {
 
                       <div className="mt-1 flex flex-row gap-2 items-center">
                         <p className="text-white bg-gray-600 inline-block px-3 py-1 rounded-full">{post.type}</p>
-                        <p className="flex flex-row items-center"><FcLike />{post.likes}</p>
+                        <button 
+                        onClick={() => useLikeStore.getState().addLike(post._id)}
+                        className="flex flex-row items-center px-3 py-1 bg-red-300 rounded-sm hover:bg-red-400 transition">
+                          <FcLike />{post.likes}
+                        </button>
                       </div>
                     </section>
                     <section className="w-1/3">

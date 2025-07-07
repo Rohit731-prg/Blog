@@ -42,7 +42,6 @@ function Account() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(post, base64);
     await usePostStore.getState().cratePost(post, base64);
     setPost({ title: "", description: "", category: "", image: "" });
   };
@@ -68,7 +67,7 @@ function Account() {
             <section className="mt-5 w-2/3">
               <p className="font-semibold text-4xl">Create Post</p>
 
-              <form className="flex flex-col">
+              <form onSubmit={handleSubmit} className="flex flex-col">
                 <label htmlFor="title">Title</label>
                 <input
                   className="rounded-sm bg-white border border-gray-400 p-2 mb-2 outline-none focus:ring-2 focus:ring-blue-400"

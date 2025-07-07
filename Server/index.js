@@ -5,6 +5,8 @@ import cors from "cors";
 import { connectDB } from "./config/connectDB.js";
 import userRouter from './src/routes/user.route.js';
 import postRouter from './src/routes/post.route.js';
+import LikeRouter from './src/routes/like.route.js';
+import cookieParser from "cookie-parser";
 
 const app = express();
 
@@ -15,9 +17,11 @@ app.use(cors({
 app.use(express.json({
     limit: "30mb"
 }));
+app.use(cookieParser());
 
 app.use('/api/user', userRouter);
 app.use('/api/post', postRouter);
+app.use('/api/like', LikeRouter);
 
 const port = process.env.PORT || 2500;
 

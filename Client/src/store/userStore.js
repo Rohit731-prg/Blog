@@ -57,6 +57,19 @@ const useUserStore = create(
         set({ user: null, post: 0 });
         toast.success('User logged out');
       },
+
+      verifyAuth: async () => {
+        try {
+          const res = await axios.post('/api/user/verifyWithAuth');
+          if (!res.data || !res.data.user) return false;
+
+          set({ user: res.data.user });
+          set({ post: res.data.post });
+          return res.data.user;
+        } catch (error) {
+          return false;
+        }
+      }
     }),
     {
       name: 'user-storage', // Key in localStorage

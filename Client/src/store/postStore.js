@@ -2,9 +2,10 @@ import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import axios from "../utils/axiosAPI";
 import useUserStore from "./userStore";
+import { FaTruck } from "react-icons/fa";
 
 const usePostStore = create((set, get) => ({
-  posts: [],
+  posts: null,
   tranding: [],
 
   cratePost: async (postDetails, img) => {
@@ -55,7 +56,7 @@ const usePostStore = create((set, get) => ({
   },
 
   getCategoeyPost: async (category) => {
-    if(category == 'All') return get().getPosts();
+    if (category == "All") return get().getPosts();
     try {
       const res = await axios.post("/api/post/getPostByType", {
         type: category,
@@ -67,6 +68,33 @@ const usePostStore = create((set, get) => ({
       console.log(error);
     }
   },
+
+  deletePost: async (id) => {
+    try {
+      const deletePromise = axios.delete(`/api/post/deletePost/${id}`);
+
+      await toast.promise(deletePromise, {
+        loading: "Deleting post...",
+        success: (res) => res.data.message,
+        error: (err) => err?.response?.data?.message || "Something went wrong",
+      });
+
+      // Refresh posts after successful deletion
+      await get().getPostByID(); // 👈 user-specific posts
+    } catch (error) {
+      console.error("Delete failed:", error);
+    }
+  },
+
+  getPostByPostID: async (id) => {
+    try {
+      const res = await axios.post(`/api/post/getPostsByPostID/${id}`);
+      return res.data.post; // Return the post data
+    } catch (error) {
+      toast.error(error.response.data.message);
+      console.log(error);
+    }
+  }
 }));
 
 export default usePostStore;
