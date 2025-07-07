@@ -114,7 +114,8 @@ export const logIn = async (req, res) => {
 
 export const loginWithVerify = async (req, res) => {
     try {
-        const { email } = req.email;
+        const email = req.email;
+        console.log(email);
         const user = await User.findOne({ email });
 
         if (!user) return res.status(404).json({ message: "User not found" });
@@ -135,6 +136,27 @@ export const logOut = (req, res) => {
     try {
         res.clearCookie("token");
         res.status(200).json({ message: "User logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+export const updateProfileImage = async (req, res) => {
+    const { id } = req.params;
+    const { image } = req.body;
+    if( !image ) {
+        return res.status(400).json({ message: "Image is required" });
+    }
+    try {
+        const user = await User.findById(id);
+        if( !user ) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const clouldImage = await cloudinary.uploader.upload(image);
+
+        user.image = clouldImage.secure_url;
+        await user.save();
+        res.status(200).json({ message: "Profile image updated successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
