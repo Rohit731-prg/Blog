@@ -40,9 +40,9 @@ function Account() {
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = async (e) => {
+  const handlelSubmit = async (e) => {
     e.preventDefault();
-    await usePostStore.getState().cratePost(post, base64);
+    await usePostStore.getState().createPost(post, base64);
     setPost({ title: "", description: "", category: "", image: "" });
   };
 
@@ -53,21 +53,37 @@ function Account() {
           <Navber />
 
           <section className="px-52 flex flex-row gap-5">
-            <section className="w-1/3 flex flex-col ">
-              <img
-                src={user.image}
-                className="w-40 h-40 mt-20 mb-2 rounded-full"
-              />
-              <p className="font-semibold text-4xl">{user.name}</p>
-              <p className="text-gray-600 font-semibold mt-2">{user.email}</p>
+            <section className="w-1/3 flex flex-col items-center mt-20">
+              <div className="relative w-40 h-40 mb-4">
+                <img
+                  src={user.image}
+                  alt={`${user.name}'s profile`}
+                  className="w-full h-full rounded-full object-cover border border-gray-300"
+                />
+                <input
+                id="profileImage"
+                className="hidden"
+                type="file" />
+                <button
+                  type="button"
+                  className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
+                  title="Edit Profile Picture"
+                >
+                  <label htmlFor="profileImage" className=""><FaCamera className="" /></label>
+                </button>
+              </div>
 
-              <p>Post : {postCount}</p>
+              <p className="font-semibold text-2xl text-center">{user.name}</p>
+              <p className="text-gray-600 font-medium mt-1 text-center">
+                {user.email}
+              </p>
+              <p className="mt-2 text-center">Posts: {postCount}</p>
             </section>
 
             <section className="mt-5 w-2/3">
               <p className="font-semibold text-4xl">Create Post</p>
 
-              <form onSubmit={handleSubmit} className="flex flex-col">
+              <form onSubmit={handlelSubmit} className="flex flex-col">
                 <label htmlFor="title">Title</label>
                 <input
                   className="rounded-sm bg-white border border-gray-400 p-2 mb-2 outline-none focus:ring-2 focus:ring-blue-400"
@@ -108,7 +124,7 @@ function Account() {
                         category: e.target.value,
                       }))
                     }
-                    className="w-full border border-gray-300 rounded-md px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    className="w-full border my-3 border-gray-300 rounded-md px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
                   >
                     <option value="">Select Category</option>
                     {categories.map((cat, index) => (

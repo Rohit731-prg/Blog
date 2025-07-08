@@ -2,25 +2,29 @@ import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import axios from "../utils/axiosAPI";
 import useUserStore from "./userStore";
-import { FaTruck } from "react-icons/fa";
 
 const usePostStore = create((set, get) => ({
   posts: null,
   tranding: [],
 
-  cratePost: async (postDetails, img) => {
-    const id = useUserStore.getState().user._id;
-    const res = await axios.post(`/api/post/createPost/${id}`, {
-      title: postDetails.title,
-      description: postDetails.description,
-      image: postDetails.image,
-      type: postDetails.category,
-    });
-    toast.promise(res, {
-      loading: "Creating post...",
-      success: "Post created successfully",
-      error: (err) => err?.response?.data?.message || "Something went wrong",
-    });
+  createPost: async (postDetails, img) => {
+    try {
+      const id = useUserStore.getState().user._id;
+      const postPromise = axios.post(`/api/post/createPost/${id}`, {
+        title: postDetails.title,
+        description: postDetails.description,
+        image: img || postDetails.image,
+        type: postDetails.category,
+      });
+
+      await toast.promise(postPromise, {
+        loading: "Creating post...",
+        success: "Post created successfully",
+        error: (err) => err?.response?.data?.message || "Something went wrong",
+      });
+    } catch (error) {
+      console.error("Post creation failed:", error);
+    }
   },
 
   getPosts: async () => {
@@ -94,7 +98,7 @@ const usePostStore = create((set, get) => ({
       toast.error(error.response.data.message);
       console.log(error);
     }
-  }
+  },
 }));
 
 export default usePostStore;

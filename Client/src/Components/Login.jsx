@@ -7,38 +7,39 @@ import { Toaster } from "react-hot-toast";
 
 function Login() {
   const navigate = useNavigate();
-  const [imageList, setImageList] = useState([]);
+  const [imageList, setImageList] = useState("");
   const [passwordShow, setPasswordShow] = useState(false);
   const [details, setDetails] = useState({
     email: "",
     password: "",
   });
+
   const images = useImageStore.getState().images;
 
-  const handelSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
     const res = await useUserStore.getState().logIn(details);
     if (res) {
       navigate(`/profile/${res.user._id}`);
     }
   };
 
-  const verifyAuth = async () => {
-    const user = useUserStore.getState().verifyAuth();
-    if (user) {
-      navigate(`/profile/${user.user._id}`);
-    } else {
-      navigate("/");
-    }
-  }
-
   useEffect(() => {
-    verifyAuth();
+    const init = async () => {
+      const user = await useUserStore.getState().verifyAuth();
+      console.log(user);
+      if (user) {
+        navigate(`/profile/${user._id}`);
+      }
 
-    const random = Math.floor(Math.random() * 3);
-    setImageList(images[random]);
-  }, []);
+      if (images.length > 0) {
+        const random = Math.floor(Math.random() * images.length);
+        setImageList(images[random]);
+      }
+    };
+
+    init();
+  }, [navigate, images]);
 
   return (
     <>
@@ -47,7 +48,7 @@ function Login() {
           <div className="w-full md:w-2/5 h-52 md:h-auto">
             <img
               src={imageList}
-              alt=""
+              alt="Login Visual"
               className="w-full h-full object-cover"
             />
           </div>
@@ -55,7 +56,7 @@ function Login() {
           <main className="w-full md:w-3/5 p-6 md:p-10 flex flex-col justify-center">
             <p className="text-white text-3xl font-bold mb-6">Welcome Back</p>
 
-            <form onSubmit={handelSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <input
                 value={details.email}
                 onChange={(e) =>
