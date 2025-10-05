@@ -8,15 +8,16 @@ import {
   getPostByType,
   getTrandingBlogs,
 } from "../controllers/post.controller.js";
+import { verifyJsonToken } from "../middleware/verifyJSON_webToken.js";
 
 const router = express.Router();
 
-router.post("/createPost/:id", createPost);
-router.get("/getAllPosts", getAllPosts);
-router.post("/getPostsByID/:id", getPostById);
-router.get("/getTrandings", getTrandingBlogs);
-router.post("/getPostByType", getPostByType);
-router.delete("/deletePost/:id", deletePost);
-router.post('/getPostsByPostID/:id', getPostByPostID);
+router.post("/createPost/:id", verifyJsonToken, createPost);
+router.get("/getAllPosts", verifyJsonToken, getAllPosts);
+router.post("/getPostsByID/:id", verifyJsonToken, getPostById);
+router.get("/getTrandings", verifyJsonToken, getTrandingBlogs);
+router.post("/getPostByType", verifyJsonToken, getPostByType);
+router.delete("/deletePost/:id", verifyJsonToken, deletePost);
+router.post('/getPostsByPostID/:id', verifyJsonToken, getPostByPostID);
 
 export default router;

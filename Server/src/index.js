@@ -3,9 +3,9 @@ import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
 import { connectDB } from "./config/connectDB.js";
-import userRouter from './src/routes/user.route.js';
-import postRouter from './src/routes/post.route.js';
-import LikeRouter from './src/routes/like.route.js';
+import userRouter from './routes/user.route.js';
+import postRouter from './routes/post.route.js';
+import LikeRouter from './routes/like.route.js';
 import cookieParser from "cookie-parser";
 
 const app = express();
@@ -15,7 +15,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(express.json({
-    limit: "30mb"
+    limit: "2mb"
 }));
 app.use(cookieParser());
 

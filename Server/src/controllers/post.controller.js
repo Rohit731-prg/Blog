@@ -1,4 +1,3 @@
-import cloudinary from "../../utils/cloudinary.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 
@@ -14,9 +13,8 @@ export const createPost = async (req, res) => {
     const user = await User.findById(id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    const uploadedImage = await cloudinary.uploader.upload(image);
-    const url = uploadedImage.secure_url;
-    const image_ID = uploadedImage.public_id;
+    const url = req.imageUrl;
+    const image_ID = req.imageId;
 
     const newPost = new Post({ title, description, type, image: url, user: id, image_ID });
     await newPost.save();

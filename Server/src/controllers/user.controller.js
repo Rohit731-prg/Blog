@@ -1,9 +1,8 @@
-import cloudinary from "../../utils/cloudinary.js";
-import { sendMail } from "../../utils/nodemailer.js";
+import { sendMail } from "../utils/nodemailer.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
 import bcript from "bcryptjs";
-import JWT from "jsonwebtoken";
+import { generateToken } from "../utils/generateToken.js";
 
 export const register = async (req, res) => {
     const { name, email, password, image } = req.body;
@@ -16,10 +15,8 @@ export const register = async (req, res) => {
             return res.status(400).json({ message: "User already exists" });
         }
 
-        if( !image ) return res.status(400).json({ message: "Image is required" });
-        const clouldImage = await cloudinary.uploader.upload(image);
-        const url = clouldImage.secure_url;
-        const image_ID = clouldImage.public_id;
+        const url = req.imageUrl;
+        const image_ID = req.imageId;
 
         const OPT = Math.floor(Math.random() * 10000);
         if( OPT.length < 4 ) {
@@ -55,20 +52,6 @@ export const compliteRes = async (req, res) => {
             res.status(200).json({ message: "User verified successfully" });
             return;
         }
-
-        const token = JWT.sign({
-            email: iSExist.email,
-            id: iSExist._id
-        }, process.env.JWT_CODE, {
-            expiresIn: "1d"
-        });
-
-        res.cookie("token", token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            maxAge: 24 * 60 * 60 * 1000
-        });
         res.status(400).json({ message: "Invalid OTP" });
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -92,12 +75,7 @@ export const logIn = async (req, res) => {
 
         const post = await Post.find({ user: isExist._id }).countDocuments();
 
-        const token = JWT.sign({
-            email: isExist.email,
-            id: isExist._id
-        }, process.env.JWT_CODE, {
-            expiresIn: "1d"
-        });
+        const token = generateToken({ id: isExist._id, email: isExist.email });
 
         res.cookie("token", token, {
             httpOnly: true,
