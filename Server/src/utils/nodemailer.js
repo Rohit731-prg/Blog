@@ -19,7 +19,6 @@ export const sendMail = async (to, subject, text) => {
         }
 
         const info = await transpoter.sendMail(mailOption);
-        console.log(info.response);
     } catch (error) {
         console.log('error from nodemailer', error);
     }

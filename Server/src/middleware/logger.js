@@ -17,6 +17,5 @@ export const logger = (req, res, next) => {
   fs.appendFile(logFilePath, log, (err) => {
     if (err) console.error("Error writing to log file", err);
   });
-  console.log("middleware log:", log.trim());
   next();
 };

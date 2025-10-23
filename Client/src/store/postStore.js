@@ -33,7 +33,7 @@ const usePostStore = create((set, get) => ({
       const posts = res.data.posts;
       set({ posts });
     } catch (error) {
-      toast.error(error.response.data.message);
+      // toast.error(error.response.data.message);
       console.log(error);
     }
   },
@@ -54,7 +54,7 @@ const usePostStore = create((set, get) => ({
       const res = await axios.get("/api/post/getTrandings");
       set({ tranding: res.data.posts });
     } catch (error) {
-      toast.error(error.response.data.message);
+      // toast.error(error.response.data.message);
       console.log(error);
     }
   },

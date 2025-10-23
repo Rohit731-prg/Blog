@@ -9,10 +9,11 @@ import {
   getTrandingBlogs,
 } from "../controllers/post.controller.js";
 import { verifyJsonToken } from "../middleware/verifyJSON_webToken.js";
+import { upload, uploadImage } from "../middleware/multer.js";
 
 const router = express.Router();
 
-router.post("/createPost/:id", verifyJsonToken, createPost);
+router.post("/createPost", verifyJsonToken, upload.single("image"), uploadImage, createPost);
 router.get("/getAllPosts", verifyJsonToken, getAllPosts);
 router.post("/getPostsByID/:id", verifyJsonToken, getPostById);
 router.get("/getTrandings", verifyJsonToken, getTrandingBlogs);
