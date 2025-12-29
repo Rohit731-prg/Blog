@@ -1,9 +1,9 @@
 import { sendMail } from "../utils/nodemailer.js";
 import Post from "../models/post.model.js";
 import User from "../models/user.model.js";
-import bcript from "bcryptjs";
 import { generateToken } from "../utils/generateToken.js";
 import cloudinary from "../config/cloudinary.js";
+import { compairPassword, ganarateHashPassword } from "../utils/passwordHash.js";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -12,56 +12,45 @@ export const register = async (req, res) => {
   }
   try {
     const isExist = await User.findOne({ email });
-    if (isExist)
-      return res.status(400).json({ message: "User already exists" });
+    if (isExist) return res.status(400).json({ message: "User already exists" });
 
     const url = req.imageUrl;
     const image_ID = req.imageId;
 
-    let OPT = Math.floor(Math.random() * 10000);
-    if (OPT.length < 4) {
-      console.log(OPT);
-      OPT = `${OPT}0`;
-    }
-    const hashedPass = await bcript.hash(password, 10);
+    const OTP = Math.floor(1000 + Math.random() * 9000)
+    const hashedPass = await ganarateHashPassword(password);
 
     const newUser = new User({
       name,
       email,
       password: hashedPass,
       image: url,
-      otp: OPT,
+      otp: OTP,
       image_ID,
     });
+    
+    await sendMail(email, "OTP Verification", `Your OTP is ${OPT}`);
     await newUser.save();
-
-    sendMail(email, "OTP Verification", `Your OTP is ${OPT}`);
     res.status(201).json({
       message: "OTP sent successfully to your email",
-      user: newUser._id,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-export const compliteRes = async (req, res) => {
-  const { id } = req.params;
-  const { userOpt } = req.body;
-  if (!userOpt)
-    return res.status(400).json({ message: "All fields are required" });
+export const verifyAuth = async (req, res) => {
+  const { email, otp } = req.body;
+  if (!otp || !email) return res.status(400).json({ message: "All fields are required" });
   try {
-    const iSExist = await User.findById(id);
-    if (!iSExist) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    if (userOpt === iSExist.otp) {
-      iSExist.auth = true;
-      await iSExist.save();
-      res.status(200).json({ message: "User verified successfully" });
-      return;
-    }
-    res.status(400).json({ message: "Invalid OTP" });
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    if (otp !== user.otp) return res.status(404).json({ message: "Invalid OTP" });
+    user.auth = true;
+    await user.save();
+
+    res.statue(200).json({ message: "User authenticate now...!"})
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -69,20 +58,16 @@ export const compliteRes = async (req, res) => {
 
 export const logIn = async (req, res) => {
   const { email, password } = req.body;
-  if (!email || !password)
-    return res.status(400).json({ message: "All fields are required" });
+  if (!email || !password) return res.status(400).json({ message: "All fields are required" });
+  
   try {
-    const isExist = await User.findOne({ email });
-    if (!isExist) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    const isPasswordValid = bcript.compare(password, isExist?.password);
-    if (!isPasswordValid) {
-      return res.status(400).json({ message: "Invalid password" });
-    }
-
-    const post = await Post.find({ user: isExist._id }).countDocuments();
-    const token = generateToken(isExist._id, isExist.email);
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+    
+    const compair = await compairPassword(password, user?.password);
+    if (!compair) return res.status(404).json({ message: "Invalid Password" });
+    const post = await Post.find({ user: user._id }).countDocuments();
+    const token = generateToken(user?._id, user?.email);
 
     res.cookie("token", token, {
       httpOnly: true,
@@ -90,10 +75,15 @@ export const logIn = async (req, res) => {
       sameSite: "lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
-    const user = await User.findById(isExist._id).select("-password -otp");
+    const userDetails = {
+      _id: user?._id,
+      name: user?.name,
+      email: user?.email,
+      image: user?.image,
+    }
     res.status(200).json({
       message: "User logged in successfully",
-      user: user,
+      user: userDetails,
       post: post,
     });
   } catch (error) {

@@ -20,6 +20,6 @@ export const sendMail = async (to, subject, text) => {
 
         const info = await transpoter.sendMail(mailOption);
     } catch (error) {
-        console.log('error from nodemailer', error);
+        throw new Error(error.message);
     }
 }

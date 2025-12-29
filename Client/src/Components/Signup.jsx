@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import useImageStore from '../store/imagesStore';
 import useUserStore from '../store/userStore';
+import { images } from '../utils/images';
 
 function Signup() {
-  const images = useImageStore.getState().images;
   const navigate = useNavigate();
 
   const [userDetails, setUserDetails] = useState({

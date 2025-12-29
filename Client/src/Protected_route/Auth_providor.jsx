@@ -1,19 +1,15 @@
-import { Children, createContext, useContext, useEffect, useState } from "react"
+import { Navigate } from "react-router-dom";
 
-const authContext = createContext()
+const is_auth = () => {
+  return localStorage.getItem("adminToken") === "true";
+};
 
-function Auth_providor() {
-    const [isAuthenticate, setAuthenticate] = useState(false);
+function ProtectedRoute({ children }) {
+    if (!is_auth()) {
+      return <Navigate to="/" replace />
+    }
 
-    useEffect(() => {
-        const token = localStorage.getItem('authToken');
-        setAuthenticate(!!token)
-    }, []);
-  return (
-    <authContext.Provider value={{ isAuthenticate, setAuthenticate }}>
-        {Children}
-    </authContext.Provider>
-  )
+    return children;
 }
 
-export const useAuth = () => useContext(authContext)
+export default ProtectedRoute;
