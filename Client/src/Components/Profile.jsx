@@ -1,23 +1,19 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import usePostStore from "../store/postStore";
-import { FcLike } from "react-icons/fc";
 import { Toaster } from "react-hot-toast";
-import useLikeStore from "../store/likeStore";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "./Sidebar";
+import Sidebar from "./Auth/Sidebar";
+import useUserStore from "../store/userStore";
+import { FiSearch } from "react-icons/fi";
+import { GrLike } from "react-icons/gr";
+import { FaRegComment, FaRegEye } from "react-icons/fa";
 
 function Profile() {
-  const { getPosts, getTranding, getCategoeyPost } = usePostStore();
+  const { getPosts, getTranding, getCategoeyPost, posts, tranding, setPost } = usePostStore();
   const navigate = useNavigate();
-  const posts = usePostStore((state) => state.posts);
-  const trandings = usePostStore((state) => state.tranding);
+  const { user } = useUserStore();
   const categories = [
-    "All",
-    "Technology",
-    "Politics",
-    "Business & Finance",
-    "Lifestyle",
-    "Culture & Society",
+    "All", "Technology", "Politics", "Business & Finance", "Lifestyle", "Culture & Society",
   ];
 
   const setCategory = async (category) => {
@@ -27,24 +23,46 @@ function Profile() {
   const fetchData = async () => {
     await Promise.all([getPosts(), getTranding()]);
   };
-  fetchData();
 
-  useEffect(() => {}, []);
+  const [search, setSearch] = useState("");
+  const filterPosts = (posts || []).filter((post) => {
+    return post.title.toLowerCase().includes(search.toLowerCase());
+  });
 
+  const navigateToBlog = (post) => {
+    setPost(post);
+    navigate("/blog");
+  }
+
+  useEffect(() => {
+    fetchData();
+  }, []);
   return (
     <>
       <main className="min-h-screen bg-[#f9f9f9] text-gray-800 font-primary flex flex-row">
         <Sidebar />
 
-        <section className="flex flex-row w-full pt-20 px-20 gap-8">
+        <section className="flex flex-row w-full pt-16 px-20 gap-8 ml-72">
           {/* Left Section - Posts */}
           <section className="w-2/3 space-y-6 px-10">
-            <p className="text-4xl font-semibold mb-10">For you</p>
+            <section>
+                <p className="text-gray-400">Welcome back <span className="text-black">{user?.name.split(" ")[0]}</span></p>
+                <div className="my-5 bg-gray-300 px-5 py-2 flex flex-row gap-3 items-center rounded-full">
+                  <FiSearch />
+                  <input 
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search you blog here .."
+                  className="w-full border-none outline-none"
+                  type="text" />
+                </div>
+            </section>
+            <p className="text-4xl font-semibold mb-10">Latest Blogs for You</p>
             {posts &&
-              posts.map((post, index) => (
+              filterPosts.map((post, index) => (
                 <div
                   key={index}
-                  onClick={() => navigate(`/blog/${post._id}`)}
+                  onClick={() => navigateToBlog(post)}
                   className="flex flex-row h-48 mb-14 cursor-pointer"
                 >
                   <section className="w-2/3">
@@ -66,26 +84,21 @@ function Profile() {
                         </p>
                       </div>
                     </div>
-                    <p className="text-xl font-semibold">{post.title}</p>
+                    <p className="text-xl font-semibold">{post.title.length > 30 ? post.title.slice(0, 30)  + "..." : post.title}</p>
                     <p className="my-3 text-sm text-gray-400">
                       {post.description.length > 120
                         ? `${post.description.slice(0, 120)}...`
                         : post.description}
                     </p>
 
-                    <div className="mt-1 flex flex-row gap-2 items-center">
+                    <div className="mt-1 flex flex-row gap-5 items-center">
                       <p className="text-white bg-gray-600 inline-block px-3 py-1 rounded-full">
                         {post.type}
                       </p>
-                      <button
-                        onClick={() =>
-                          useLikeStore.getState().addLike(post._id)
-                        }
-                        className="flex flex-row items-center px-3 py-1 bg-red-300 rounded-sm hover:bg-red-400 transition"
-                      >
-                        <FcLike />
-                        {post.likes}
-                      </button>
+                      <p className="flex flex-row gap-1 items-center bg-amber-200 px-2 py-1 rounded-full"><FaRegEye />{post.reads.length}</p>
+                      <p className="flex flex-row gap-1 items-center bg-blue-200 px-2 py-1 rounded-full"><GrLike />{post.likes.length}</p>
+                      <p className="flex flex-row gap-1 items-center bg-black text-white px-2 py-1 rounded-full"><FaRegComment />{post.comment}</p>
+
                     </div>
                   </section>
                   <section className="w-1/3">
@@ -121,8 +134,8 @@ function Profile() {
             <div>
               <h2 className="text-xl font-semibold mb-4">Trending Blogs</h2>
               <section className="space-y-4">
-                {trandings &&
-                  trandings.slice(0, 5).map((blog, i) => (
+                {tranding &&
+                  tranding.slice(0, 5).map((blog, i) => (
                     <div
                       key={i}
                       className="flex gap-3 items-start border-b pb-3 border-gray-200"

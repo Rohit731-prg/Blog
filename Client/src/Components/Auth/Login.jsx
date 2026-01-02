@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import useUserStore from "../store/userStore";
+import useUserStore from "../../store/userStore";
 import { Toaster } from "react-hot-toast";
-import { images } from "../utils/images";
+import { images } from "../../utils/images";
 
 function Login() {
   const { logIn } = useUserStore(); 

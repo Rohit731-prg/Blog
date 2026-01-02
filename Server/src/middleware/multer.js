@@ -2,8 +2,8 @@ import multer from "multer";
 import cloudinary from "../config/cloudinary.js";
 
 const storage = multer.memoryStorage();
-export const upload = multer({ storage });
 
+export const upload = multer({ storage });
 export const uploadImage = async (req, res, next) => {
   if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 

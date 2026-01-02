@@ -1,20 +1,28 @@
 import { create } from "zustand";
 import { toast } from "react-hot-toast";
 import axios from "../utils/axiosAPI";
-import useUserStore from "./userStore";
+import useCommentStore from "./commentStore";
 
 const usePostStore = create((set, get) => ({
   posts: null,
   tranding: [],
+  post: null,
 
-  createPost: async (postDetails, img) => {
+  setPost: (post) => {
+    set({ post });
+  },
+
+  createPost: async (postDetails) => {
     try {
-      const id = useUserStore.getState().user._id;
-      const postPromise = axios.post(`/api/post/createPost/${id}`, {
-        title: postDetails.title,
-        description: postDetails.description,
-        image: img || postDetails.image,
-        type: postDetails.category,
+      const newForm = new FormData();
+      newForm.append("title", postDetails.title);
+      newForm.append("description", postDetails.description);
+      newForm.append("type", postDetails.category);
+      newForm.append("image", postDetails.image);
+      const postPromise = axios.post(`/api/post/createPost`, newForm, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       await toast.promise(postPromise, {
@@ -39,9 +47,8 @@ const usePostStore = create((set, get) => ({
   },
 
   getPostByID: async () => {
-    const id = useUserStore.getState().user._id;
     try {
-      const res = await axios.post(`/api/post/getPostsByID/${id}`);
+      const res = await axios.get(`/api/post/getPostsByID`);
       set({ posts: res.data.posts });
     } catch (error) {
       toast.error(error.response.data.message);
@@ -93,12 +100,43 @@ const usePostStore = create((set, get) => ({
   getPostByPostID: async (id) => {
     try {
       const res = await axios.post(`/api/post/getPostsByPostID/${id}`);
-      return res.data.post; // Return the post data
+      set({ post: res.data.post });
+      useCommentStore().getState().getAllComments(id);
     } catch (error) {
       toast.error(error.response.data.message);
       console.log(error);
     }
   },
+
+  readPost: async (id) => {
+    try {
+      const response = await axios.put(`/api/post/readPost/${id}`);
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+  },
+
+  updatePost: async (post) => {
+    try {
+      const response = axios.put(`/api/post/update/${post?._id}`, {
+        title: post?.title,
+        description: post?.description,
+        type: post?.type
+      });
+
+      toast.promise(response, {
+        loading: "Loading...",
+        success: (res) => res.data.message,
+        error: (err) => err.response.data.message || err.message || "Internal Server Error"
+      });
+
+      await response;
+      get().getPostByID()
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }));
 
 export default usePostStore;

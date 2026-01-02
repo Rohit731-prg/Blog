@@ -6,6 +6,7 @@ import {
   logOut,
   register,
   updateProfileImage,
+  accountDetails,
 } from "../controllers/userController.js";
 import { verifyJsonToken } from "../middleware/verifyJSON_webToken.js";
 import { logger } from "../middleware/logger.js";
@@ -18,6 +19,7 @@ router.post("/optVerify/:id", verifyAuth);
 router.post("/login", logIn);
 router.get("/logout", logOut);
 router.put("/updateProfileImage", verifyJsonToken, logger, upload.single("image"), uploadImage, updateProfileImage);
-
+router.get("/getAccountDetails", verifyJsonToken, accountDetails);
 router.get('/me', verifyJsonToken, loginWithVerify);
+
 export default router;

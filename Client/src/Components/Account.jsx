@@ -1,182 +1,85 @@
-import React, { useState, useEffect } from "react";
-import useUserStore from "../store/userStore";
-import usePostStore from "../store/postStore";
-import Navber from "./Navber";
-import { FaCamera } from "react-icons/fa";
 import { Toaster } from "react-hot-toast";
+import Sidebar from "./Auth/Sidebar";
+import useUserStore from "../store/userStore";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 function Account() {
-  const postCount = useUserStore((state) => state.post);
-  const user = useUserStore((state) => state.user);
   const [image, setImage] = useState(null);
-  const [base64, setBase64] = useState(null);
-  const [post, setPost] = useState({
-    title: "",
-    description: "",
-    category: "",
-    image: "",
-  });
+  const [preImage, setPreImage] = useState(false);
+  const { user, logOut, accountDetailsFun, accountDetails, updateImage } = useUserStore();
+  const navigate = useNavigate();
+  const handelLogout = async () => {
+    await logOut();
+    localStorage.setItem("adminToken", "false");
+    navigate("/");
+  };
 
-  const categories = [
-    "Technology",
-    "Politics",
-    "Business & Finance",
-    "Lifestyle",
-    "Culture & Society",
+  const infoList = [
+    { id: 1, name: "Total Upload Posts", value: accountDetails?.total_posts ? accountDetails?.total_posts : 0 },
+    { id: 2, name: "Total Save Post", value: accountDetails?.total_save ? accountDetails?.total_save : 0  },
+    { id: 3, name: "Total Likes", value: accountDetails?.total_likes ? accountDetails?.total_likes : 0  },
+    { id: 4, name: "Total Comments", value: accountDetails?.total_comments ? accountDetails?.total_comments : 0  },
+    { id: 5, name: "Total views", value: accountDetails?.total_views ? accountDetails?.total_views : 0  },
   ];
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setImage(URL.createObjectURL(file));
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      const base64IMG = reader.result;
-      setBase64(base64IMG);
-      setPost((prev) => ({ ...prev, image: base64IMG }));
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handlelSubmit = async (e) => {
-    e.preventDefault();
-    await usePostStore.getState().createPost(post, base64);
-    setPost({ title: "", description: "", category: "", image: "" });
-  };
-
+  const handelUpdateImage = async () => {
+      await updateImage(image)
+  }
+  useEffect(() => {
+    accountDetailsFun();
+  }, []);
   return (
-    <>
-      {user && (
-        <main className="min-h-screen bg-gray-50 pt-30 font-primary">
-          <Navber />
+    <main className="min-h-screen bg-[#f9f9f9] text-gray-800 font-primary">
+      <Sidebar />
 
-          <section className="px-52 flex flex-row gap-5">
-            <section className="w-1/3 flex flex-col items-center mt-20">
-              <div className="relative w-40 h-40 mb-4">
-                <img
-                  src={user.image}
-                  alt={`${user.name}'s profile`}
-                  className="w-full h-full rounded-full object-cover border border-gray-300"
-                />
-                <input
-                id="profileImage"
-                className="hidden"
-                type="file" />
-                <button
-                  type="button"
-                  className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow hover:bg-gray-100 transition"
-                  title="Edit Profile Picture"
-                >
-                  <label htmlFor="profileImage" className=""><FaCamera className="" /></label>
-                </button>
-              </div>
+      <aside className="ml-72 px-20 py-10">
+        <section className="w-full flex flex-row justify-between items-center py-5 border-b-2 border-gray-400">
+          <p>{user.name.split(" ")[0]}'s Account</p>
+          <button
+            className="px-10 py-2 rounded-full bg-red-600 text-white font-medium shadow-xl shadow-balck transition hover:scale-105"
+            onClick={handelLogout}
+          >
+            SIGN OUT
+          </button>
+        </section>
+        <section className="flex flex-row gap-20 mt-10">
+          <section>
+            <img
+              src={preImage ? URL.createObjectURL(image) : user?.image}
+              alt=""
+              className="w-60 h-60 object-cover rounded-sm"
+            />
+            
+            <button className="my-3 px-10 py-3 bg-cyan-500 font-medium rounded-full" onClick={() => {}}>
+              Change Profile Image
+            </button>
 
-              <p className="font-semibold text-2xl text-center">{user.name}</p>
-              <p className="text-gray-600 font-medium mt-1 text-center">
-                {user.email}
-              </p>
-              <p className="mt-2 text-center">Posts: {postCount}</p>
-            </section>
+            <div className="mt-10">
+              <p className="text-2xl font-medium">{user.name}</p>
+              <p className="text-[16px] text-gray-500">{user.email}</p>
 
-            <section className="mt-5 w-2/3">
-              <p className="font-semibold text-4xl">Create Post</p>
+              {/* <p>Account create Date: {user?.createdAt.split("T")[0]}</p> */}
+            </div>
 
-              <form onSubmit={handlelSubmit} className="flex flex-col">
-                <label htmlFor="title">Title</label>
-                <input
-                  className="rounded-sm bg-white border border-gray-400 p-2 mb-2 outline-none focus:ring-2 focus:ring-blue-400"
-                  value={post.title}
-                  onChange={(e) =>
-                    setPost((prev) => ({ ...prev, title: e.target.value }))
-                  }
-                  id="title"
-                  placeholder="Enter Title"
-                  type="text"
-                />
-
-                <label htmlFor="description">Description</label>
-                <textarea
-                  value={post.description}
-                  onChange={(e) =>
-                    setPost((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  className="h-40 rounded-sm bg-white border border-gray-400 p-2 mb-2 outline-none focus:ring-2 focus:ring-blue-400"
-                  id="description"
-                  placeholder="Enter Description"
-                  type="text"
-                />
-
-                <div>
-                  <label htmlFor="category" className="block font-medium mb-1">
-                    Category
-                  </label>
-                  <select
-                    id="category"
-                    value={post.category}
-                    onChange={(e) =>
-                      setPost((prev) => ({
-                        ...prev,
-                        category: e.target.value,
-                      }))
-                    }
-                    className="w-full border my-3 border-gray-300 rounded-md px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-400"
-                  >
-                    <option value="">Select Category</option>
-                    {categories.map((cat, index) => (
-                      <option key={index} value={cat}>
-                        {cat}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block font-medium mb-1">Upload Image</label>
-                  <div className="flex items-center gap-4">
-                    {image && (
-                      <img
-                        src={image}
-                        alt="Preview"
-                        className="w-24 h-24 object-cover rounded-lg"
-                      />
-                    )}
-                    <label
-                      htmlFor="image"
-                      className="flex items-center gap-2 text-blue-600 cursor-pointer hover:underline"
-                    >
-                      <FaCamera className="text-xl" />
-                      <span>Choose Image</span>
-                      <input
-                        type="file"
-                        id="image"
-                        accept="image/*"
-                        onChange={handleImageChange}
-                        className="hidden"
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                <div className="flex justify-end">
-                  <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition duration-150"
-                  >
-                    Publish Post
-                  </button>
-                </div>
-              </form>
-            </section>
           </section>
-        </main>
-      )}
+          <section>
+            <p className="text-2xl font-medium ">{user?.name.split(" ")[0]}'s Post Information</p>
+
+            <aside className="grid grid-cols-3 gap-5 mt-10">
+              {infoList.map((info) => (
+                <div key={info.id} className="px-10 py-5 rounded-lg bg-amber-300 text-center">
+                    <p className="text-lg font-medium">{info.name}</p>
+                    <p className="text-2xl text-gray-600 font-semibold">{info.value ? info.value : 0 }</p>
+                </div>
+              ))}
+            </aside>
+          </section>
+          
+        </section>
+      </aside>
       <Toaster />
-    </>
+    </main>
   );
 }
 

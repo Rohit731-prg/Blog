@@ -2,10 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import { FaEye, FaEyeSlash } from "react-icons/fa6";
-import useUserStore from '../store/userStore';
-import { images } from '../utils/images';
+import useUserStore from '../../store/userStore';
+import { images } from '../../utils/images';
+
 
 function Signup() {
+  const { signUp } = useUserStore();
   const navigate = useNavigate();
 
   const [userDetails, setUserDetails] = useState({
@@ -13,49 +15,22 @@ function Signup() {
     lastName: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    image: null
   });
 
-  const [image, setImage] = useState(null);
   const [imageList, setImageList] = useState('');
   const [passwordShow, setPasswordShow] = useState(false);
   const [confirmPasswordShow, setConfirmPasswordShow] = useState(false);
 
-  // Convert file to base64 when user selects an image
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => setImage(reader.result);
-    reader.readAsDataURL(file);
-  };
-
   const handelSubmit = async (e) => {
     e.preventDefault();
-
-    if (!image) {
-      toast.error('Image is required');
-      return;
-    }
-
     if (userDetails.password !== userDetails.confirmPassword) {
       toast.error('Password does not match');
       return;
     }
-
-    const userData = {
-      name: `${userDetails.firstName} ${userDetails.lastName}`,
-      email: userDetails.email,
-      password: userDetails.password,
-      image,
-    };
-
-    const res = await useUserStore.getState().signup(userData);
-
-    if (res) {
-      navigate(`/otpcheck/${res.user._id}`);
-    }
+    const res = await signUp(userDetails);
+    if (res) navigate("/")
   };
 
   useEffect(() => {
@@ -77,7 +52,7 @@ function Signup() {
           <p className='text-white text-2xl md:text-3xl font-semibold'>Create an account</p>
           <p className='text-gray-400 my-2 text-sm md:text-base'>
             Already have an account?{' '}
-            <span onClick={() => navigate('/login')} className='underline cursor-pointer'>
+            <span onClick={() => navigate('/')} className='underline cursor-pointer'>
               Log in
             </span>
           </p>
@@ -151,10 +126,24 @@ function Signup() {
 
             <input
               type="file"
+              id='image'
               accept="image/*"
-              onChange={handleImageChange}
-              className='bg-violet-300 px-4 py-2 rounded-sm outline-none w-full my-3'
+              onChange={(e) => setUserDetails({ ...userDetails, image: e.target.files[0] })}
+              className='hidden'
             />
+
+            <label htmlFor="image">
+              {userDetails.image ? (
+                <div className=''>
+                  <img src={URL.createObjectURL(userDetails.image)} alt="" className='w-60 object-cover h-40' />
+                </div>
+              ) : (
+                <div className='bg-violet-300 p-2 text-center rounded-lg py-20'>
+                  <p>Upload Image</p>
+                  <p>Upload Or Drag the image here</p>
+                </div>
+              )}
+            </label>
 
             <div className='flex flex-row gap-2 w-full items-center my-4'>
               <div className='w-full h-[1px] bg-white'></div>

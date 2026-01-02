@@ -5,7 +5,11 @@ import useUserStore from './userStore';
 import usePostStore from './postStore'; // ✅ Import the correct store
 
 const useLikeStore = create((set, get) => ({
-  addLike: async (postId) => {
+  like: 0,
+
+  setLike: (likeNumber) => set({ like: likeNumber }),
+
+  addLike: async (id) => {
     const user = useUserStore.getState().user;
 
     if (!user?._id) {
@@ -14,7 +18,7 @@ const useLikeStore = create((set, get) => ({
     }
 
     try {
-      const likePromise = axios.post(`/api/like/addLike/${postId}`, {
+      const likePromise = axios.put(`/api/post/like/${id}`, {
         userId: user._id
       });
 
@@ -23,10 +27,7 @@ const useLikeStore = create((set, get) => ({
         success: (res) => res.data.message,
         error: (err) => err?.response?.data?.message || "Something went wrong",
       });
-
-      // ✅ Correct: refresh posts from the right store
-      usePostStore.getState().getPosts();
-
+      usePostStore.getState().getPostByPostID(id);
     } catch (error) {
       console.error("Like failed:", error);
     }

@@ -1,11 +1,10 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import useUserStore from '../store/userStore';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import useUserStore from '../../store/userStore';
 
 function OTPcheck() {
+  const { OTPverify } = useUserStore();
   const navigate = useNavigate();
-  const { id } = useParams();
-
   const [otp, setOtp] = useState(['', '', '', '']);
 
   const handelKeyDown = (e, i) => {
@@ -30,10 +29,8 @@ function OTPcheck() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const enteredOTP = otp.join('');
-    const user = await useUserStore.getState().OTPverify(id, enteredOTP);
-    if( user ) {
-        navigate('/')
-    }
+    await OTPverify(enteredOTP);
+    navigate("/");
   };
 
   return (

@@ -1,0 +1,14 @@
+URL = your mongodb url with db name
+PORT = port number
+
+EMAIL = your gmail
+PASSWORD = gamil password
+
+--- cloudinary info ---
+CLOUDINARY_NAME=
+CLOUDINARY_KEY=
+CLOUDINARY_SEC=
+ 
+
+JWT_CODE= your secret string for jwt auth
+NODE_ENV=

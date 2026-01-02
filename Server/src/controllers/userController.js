@@ -1,9 +1,11 @@
 import { sendMail } from "../utils/nodemailer.js";
-import Post from "../models/post.model.js";
-import User from "../models/user.model.js";
+import Post from "../models/postModel.js";
+import User from "../models/userModel.js";
+import Comment from "../models/commentModel.js";
 import { generateToken } from "../utils/generateToken.js";
 import cloudinary from "../config/cloudinary.js";
 import { compairPassword, ganarateHashPassword } from "../utils/passwordHash.js";
+import SaveModel from "../models/saveModel.js";
 
 export const register = async (req, res) => {
   const { name, email, password } = req.body;
@@ -29,10 +31,11 @@ export const register = async (req, res) => {
       image_ID,
     });
     
-    await sendMail(email, "OTP Verification", `Your OTP is ${OPT}`);
+    await sendMail(email, "OTP Verification", `Your OTP is ${OTP}`);
     await newUser.save();
     res.status(201).json({
       message: "OTP sent successfully to your email",
+      email
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -103,14 +106,14 @@ export const logOut = (req, res) => {
 export const updateProfileImage = async (req, res) => {
   try {
     const user = req.user;
-    console.log("user", user);
     await cloudinary.uploader.destroy(user.image_ID);
     const url = req.imageUrl;
     const image_ID = req.imageId;
     user.image = url;
     user.image_ID = image_ID;
     await user.save();
-    res.status(200).json({ message: "Profile image updated successfully" });
+    const userDetails = await User.findById(id).select("-password -otp -auth")
+    res.status(200).json({ message: "Profile image updated successfully", user: userDetails });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -130,3 +133,30 @@ export const loginWithVerify = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+export const accountDetails = async (req, res) => {
+  try {
+    const userID = req.user._id;
+    const total_post = await Post.find({ user: userID });
+    const total_save = await SaveModel.countDocuments({ user: userID });
+    const total_comments = await Comment.countDocuments({ user: userID });
+    let likes = 0, views = 0;
+    for (let post of total_post) {
+      likes += post.likes.length;
+      views += post.reads.length;
+    };
+
+    const response = {
+      total_posts: total_post.length,
+      total_save,
+      total_comments,
+      total_likes: likes,
+      total_views: views
+    };
+    console.log(response);
+    return res.status(200).json({ response });
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({ message: error.message });
+  }
+}

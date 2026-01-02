@@ -1,10 +1,14 @@
-import Post from "../models/post.model.js";
+import cloudinary from "../config/cloudinary.js";
+import Post from "../models/postModel.js";
 
 export const createPost = async (req, res) => {
   const { title, description, type } = req.body;
   if (!title || !description || !type) return res.status(400).json({ message: "All fields are required" });
-
+  if (!["All", "Technology", "Politics", "Business & Finance", "Lifestyle", "Culture & Society"].includes(type)) {
+    return res.status(400).json({ message: "Invalid Category" });
+  }
   try {
+    const userID = req.user._id;
     const user = req.user;
     const url = req.imageUrl;
     const image_ID = req.imageId;
@@ -16,6 +20,7 @@ export const createPost = async (req, res) => {
       image: url,
       user: user._id,
       image_ID,
+      user: userID
     });
     await newPost.save();
 
@@ -42,10 +47,9 @@ export const getAllPosts = async (req, res) => {
 export const getPostById = async (req, res) => {
   try {
     const user = req.user;
-
     const posts = await Post.find({ user: user._id })
       .sort({ createdAt: -1 })
-      .populate("user");
+      .populate("user", "-password -auth -otp");
     res.status(200).json({ posts });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -88,24 +92,23 @@ export const deletePost = async (req, res) => {
     const result = await cloudinary.uploader.destroy(post.image_ID);
     if (result.result === "ok") {
       await Post.findByIdAndDelete(id);
-      res.status(200).json({ message: "Post deleted successfully" });
+      return res.status(200).json({ message: "Post deleted successfully" });
     } else {
-      res.status(500).json({ message: "Error deleting image..!" });
+      return res.status(500).json({ message: "Error deleting image..!" });
     }
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.log(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
 export const getPostByPostID = async (req, res) => {
   const { id } = req.params;
   try {
-    if (!id) return res.status(400).json({ message: "Post ID is required" });
-
     const post = await Post.findById(id).populate("user");
     if (!post) return res.status(404).json({ message: "Post not found" });
 
-    res.status(200).json({ message: "Post fetched successfully", post });
+    res.status(200).json({ post });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -127,5 +130,38 @@ export const likePost = async (req, res) => {
     res.status(200).json({ message: "Post liked successfully", post });
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+}
+
+export const readPost = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = req.user;
+    const post = await Post.findById(id);
+    if (!post) return res.status(400).json({ message: "No post found! "});
+    
+    if (!post.reads.includes(user?._id)) {
+      post.reads.push(user?.id);
+      post.save();
+      return res.status(200).json({ message: "Updated" });
+    }
+    return res.status(400).json({ message: "Already readed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+export const updatePost = async (req, res) => {
+  const { title, description, type } = req.body;
+  const { id } = req.params;
+  if (!title || !description || !type) return res.status(400).json({ message: "All fields are require" });
+  try {
+    const post = await Post.findById(id);
+    if (!post) return res.status(400).json({ message: "No post are found" });
+
+    await Post.findByIdAndUpdate( id, { title: title, description: description, type: type }, { new: true });
+    res.status(200).json({ message: "Post Update Successfully..!" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
   }
 }
