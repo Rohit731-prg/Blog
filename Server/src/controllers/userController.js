@@ -106,13 +106,14 @@ export const logOut = (req, res) => {
 export const updateProfileImage = async (req, res) => {
   try {
     const user = req.user;
-    await cloudinary.uploader.destroy(user.image_ID);
+    const distroyResult = await cloudinary.uploader.destroy(user.image_ID);
+    console.log("Previous image deleted:", distroyResult);
     const url = req.imageUrl;
     const image_ID = req.imageId;
     user.image = url;
     user.image_ID = image_ID;
     await user.save();
-    const userDetails = await User.findById(id).select("-password -otp -auth")
+    const userDetails = await User.findById(user._id).select("-password -otp -auth")
     res.status(200).json({ message: "Profile image updated successfully", user: userDetails });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -153,7 +154,6 @@ export const accountDetails = async (req, res) => {
       total_likes: likes,
       total_views: views
     };
-    console.log(response);
     return res.status(200).json({ response });
   } catch (error) {
     console.log(error)
